@@ -2,8 +2,8 @@ import javax.swing.*;
 import java.awt.*;
 
 public class SignupPage extends JFrame {
+//current code for just testing
 
-    /*
     SignupPage(){
         JFrame frame = new JFrame();
         JPanel panel = new JPanel();
@@ -25,5 +25,5 @@ public class SignupPage extends JFrame {
 
     }
     
-     */
+
 }
