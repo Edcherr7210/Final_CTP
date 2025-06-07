@@ -12,8 +12,10 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
     JButton submit;
     JLabel signUpLink;
     String userOrEmail;
-    String password;
+    String inPass;
+    JTextField password;
     JTextField username;
+    JLabel error;
 
 
     LoginPage(){
@@ -26,9 +28,11 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
         JLabel imageLogin = new JLabel(loginImage);
         JLabel ctp = new JLabel();
         username = new JTextField(30);
-        JTextField password = new JTextField(30);
+        password = new JTextField(30);
         submit = new JButton();
         signUpLink = new JLabel();
+        error = new JLabel();
+
 
         imageLogin.setBounds(67, 125, 215, 215); //set the login picture
 
@@ -50,7 +54,6 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
                 BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3, true),
                 BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
-        this.userOrEmail = username.getText();
 
 
         //Textbox design
@@ -63,7 +66,7 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
                 BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3, true),
                 BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
-        this.password = password.getText();
+
 
         label.setText("SignIn Here");
         label.setBounds(564, 115, 200, 60);
@@ -84,6 +87,11 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
         signUpLink.addMouseListener(this);
         signUpLink.setForeground(Color.WHITE);
 
+        error.setBounds(520, 325, 200, 30);
+        error.setFont(font);
+        error.setForeground(Color.RED);
+        error.setLayout(null);
+
         lBBG.setLayout(null);
         lBBG.setBackground(Color.CYAN);
         lBBG.setSize(350, 500);
@@ -100,6 +108,7 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
         dGBG.add(password);
         dGBG.add(submit);
         dGBG.add(signUpLink);
+        dGBG.add(error);
 
         this.setVisible(true);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -110,21 +119,42 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
 
     //Connects to the database to get user info
     void CreateConnection() {
+        boolean emUserFound = false;
+        boolean passFound = false;
         try {
+
             Class.forName("com.mysql.jdbc.Driver");
             Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/calorieTracker?useSSL=false&serverTimezone=UTC", "root", "Mynumberis#121");
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * FROM logOrSign;");
+
+
             while(rs.next()){
-                String userOrEmail = rs.getString("Username");
-                if(Objects.equals(userOrEmail, this.userOrEmail)){
-                    System.out.println(userOrEmail);
+                //searches for email or username
+                String user = rs.getString("Username");
+                String email = rs.getString("Email");
+                if(Objects.equals(user, this.userOrEmail) || Objects.equals(email, this.userOrEmail)){
+                    System.out.println(user);
+                    emUserFound = true;
+                }
+
+                //finds the pass word
+                String password = rs.getString("Password");
+                if (Objects.equals(password, this.inPass)){
+                    System.out.println(password);
+                    passFound = true;
+                }
+
+                //this checks if the password and email or username is good to proceed
+                if (Objects.equals(emUserFound, true) && Objects.equals(passFound, true)){
                     break;
                 }
-                else {
-                    userOrEmail = "";
-                    System.out.println("Username not found");
-                }
+            }
+
+            if (Objects.equals(emUserFound, false) || Objects.equals(passFound, false)){
+                userOrEmail = "";
+                System.err.println("Username not found");
+                this.error.setText("Wrong Input Information");
             }
 
         } catch (ClassNotFoundException | SQLException e) {
@@ -136,6 +166,7 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
     public void actionPerformed(ActionEvent e) { //Button
         if (e.getSource() == submit){
             this.userOrEmail = this.username.getText();
+            this.inPass = this.password.getText();
             CreateConnection();
         }
     }
@@ -154,11 +185,12 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
 
     @Override
     public void mouseExited(MouseEvent e) { //When Clicked off link
-        signUpLink.setForeground(Color.WHITE);
+        // Empty - we don't need this
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
+        signUpLink.setForeground(Color.WHITE);
         // Empty - we don't need this
     }
 
