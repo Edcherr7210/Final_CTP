@@ -152,6 +152,8 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
             } else {
                 // Login successful - you can add navigation to next page here
                 System.out.println("Login successful!");
+                new MainPage(userOrEmail);
+                dispose();
             }
 
             // Close resources
