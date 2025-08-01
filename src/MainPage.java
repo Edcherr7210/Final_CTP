@@ -3,10 +3,14 @@ import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.*;
+import java.util.Objects;
 
 public class MainPage extends JFrame implements ActionListener {
 
     JButton calcBMR, creaPlan, addCals, checkInfo;
+    JLabel bmr;
+    String userOrEmail;
 
     // Custom rounded panel class
     class RoundedPanel extends JPanel {
@@ -39,7 +43,7 @@ public class MainPage extends JFrame implements ActionListener {
     MainPage(String user){
         JPanel lGBG = new JPanel();
         JPanel navP = new JPanel();
-
+        this.userOrEmail = user;
         // Use the custom rounded panel instead of regular JPanel
         RoundedPanel preBMR = new RoundedPanel(100);
         RoundedPanel dailyCals = new RoundedPanel(100);
@@ -47,10 +51,16 @@ public class MainPage extends JFrame implements ActionListener {
         ImageIcon corImage = new ImageIcon("pngtree-muscular-hand-holding-a-barbell-vector-illustration-concept-design-png-image_6371300-removebg-preview.png");
         JLabel corIMG = new JLabel(corImage);
         JLabel ctpLabel = new JLabel();
+        bmr = new JLabel();
         calcBMR = new JButton();
         creaPlan = new JButton();
         addCals = new JButton();
         checkInfo = new JButton();
+
+        bmr.setLayout(null);
+        bmr.setText("Calculate BMR");
+        bmr.setFont(new Font("Arial", Font.BOLD, 25));
+        bmr.setBounds(95, 5, 300, 150);
 
         //This is the panel to present the remaining calories for the day
         dailyCals.setLayout(null);
@@ -63,6 +73,7 @@ public class MainPage extends JFrame implements ActionListener {
         preBMR.setBackground(Color.WHITE);
         preBMR.setBounds(425, 100, 375, 150);
         preBMR.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        preBMR.add(bmr);
 
         //button to create calorie plan
         creaPlan.setLayout(null);
@@ -131,13 +142,75 @@ public class MainPage extends JFrame implements ActionListener {
         this.setLayout(null);
         this.add(lGBG);
         this.setLocationRelativeTo(null);
+
+        loadBMROnStartup();
+    }
+
+    // Load BMR when the page first opens
+    void loadBMROnStartup() {
+        Connection con = null;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            con = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/calorieTracker?useSSL=false&serverTimezone=UTC",
+                    "root",
+                    "Mynumberis#121"
+            );
+
+            String selectQuery = "SELECT BMR FROM INFO WHERE Username = ? OR Email = ?";
+            PreparedStatement selectStmt = con.prepareStatement(selectQuery);
+            selectStmt.setString(1, this.userOrEmail);
+            selectStmt.setString(2, this.userOrEmail);
+
+            ResultSet rs = selectStmt.executeQuery();
+
+            if (rs.next()) {
+                double bmrValue = rs.getDouble("BMR");
+                if (bmrValue > 0) {
+                    this.bmr.setText(String.format("BMR: %.0f cal/day", bmrValue));
+                    this.bmr.setForeground(new Color(34, 139, 34)); // Green color
+                } else {
+                    this.bmr.setText("Click Calculate BMR");
+                    this.bmr.setForeground(Color.GRAY);
+                }
+            } else {
+                this.bmr.setText("User not found");
+                this.bmr.setForeground(Color.RED);
+            }
+
+            rs.close();
+            selectStmt.close();
+
+        } catch (ClassNotFoundException | SQLException e) {
+            System.err.println("Database error loading BMR: " + e.getMessage());
+            this.bmr.setText("Error loading BMR");
+            this.bmr.setForeground(Color.RED);
+        } finally {
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException e) {
+                    System.err.println("Error closing connection: " + e.getMessage());
+                }
+            }
+        }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == calcBMR){
-            new CreateBMR();
-            dispose();
+            // Calculate BMR first
+            CreateBMR bmrCalculator = new CreateBMR(this.userOrEmail);
+
+            // Then update the display (don't dispose yet!)
+            UpdateBMR();
+
+            // Show success message
+            JOptionPane.showMessageDialog(this,
+                    "BMR calculated and updated successfully!",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+
         }
         else if (e.getSource() == addCals){
             new CalorieUpdate();
@@ -152,4 +225,55 @@ public class MainPage extends JFrame implements ActionListener {
             dispose();
         }
     }
+
+    void UpdateBMR(){
+        Connection con = null;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            con = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/calorieTracker?useSSL=false&serverTimezone=UTC",
+                    "root",
+                    "Mynumberis#121"
+            );
+
+            String selectQuery = "SELECT BMR FROM INFO WHERE Username = ? OR Email = ?";
+            PreparedStatement selectStmt = con.prepareStatement(selectQuery);
+            selectStmt.setString(1, this.userOrEmail);
+            selectStmt.setString(2, this.userOrEmail);
+
+            ResultSet rs = selectStmt.executeQuery();
+
+            if (rs.next()) {
+                double bmrValue = rs.getDouble("BMR");
+                if (bmrValue > 0) {
+                    this.bmr.setText(String.format("BMR: %.0f cal/day", bmrValue));
+                    this.bmr.setForeground(new Color(34, 139, 34)); // Green color
+                    System.out.println("BMR updated on screen: " + bmrValue);
+                } else {
+                    this.bmr.setText("BMR not calculated");
+                    this.bmr.setForeground(Color.GRAY);
+                }
+            } else {
+                this.bmr.setText("User not found");
+                this.bmr.setForeground(Color.RED);
+            }
+
+            rs.close();
+            selectStmt.close();
+
+        } catch (ClassNotFoundException | SQLException e) {
+            System.err.println("Database error updating BMR: " + e.getMessage());
+            this.bmr.setText("Error updating BMR");
+            this.bmr.setForeground(Color.RED);
+        } finally {
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException e) {
+                    System.err.println("Error closing connection: " + e.getMessage());
+                }
+            }
+        }
+    }
+
 }

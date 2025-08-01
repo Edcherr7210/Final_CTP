@@ -5,13 +5,14 @@ import java.awt.event.ActionListener;
 import java.sql.*;
 
 public class Info extends JFrame implements ActionListener {
-    String gender, weight, height, age, username;
+    String gender, weight, height, age, username, email;
     JTextField inGen, inWeight, inHeight, inAge;
     JButton submit;
 
 
-    Info(String user){
+    Info(String user, String email){
         this.username = user;
+        this.email = email;
         JPanel dGBG = new JPanel();
         JPanel lBBG = new JPanel();
         JLabel title = new JLabel();
@@ -155,13 +156,14 @@ public class Info extends JFrame implements ActionListener {
             Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/calorieTracker?useSSL=false&serverTimezone=UTC", "root", "Mynumberis#121");
             Statement stmt = con.createStatement();
 
-            String input = "INSERT INTO info (Username, Weight, Height, age, gender) VALUES (?, ?, ?, ?, ?)";
+            String input = "INSERT INTO info (Username, email, Weight, Height, age, gender) VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement pstmt = con.prepareStatement(input);
             pstmt.setString(1, this.username);
-            pstmt.setInt(2, Integer.parseInt(this.weight));
-            pstmt.setInt(3, Integer.parseInt(this.height));
-            pstmt.setInt(4, Integer.parseInt(this.age));
-            pstmt.setString(5, this.gender);
+            pstmt.setString(2, this.email);
+            pstmt.setInt(3, Integer.parseInt(this.weight));
+            pstmt.setInt(4, Integer.parseInt(this.height));
+            pstmt.setInt(5, Integer.parseInt(this.age));
+            pstmt.setString(6, this.gender);
 
             pstmt.executeUpdate();
 

@@ -158,7 +158,7 @@ public class SignupPage extends JFrame implements ActionListener {
             System.out.println("Account created successfully!");
             error.setText("Account created successfully!");
             error.setForeground(Color.GREEN);
-            new Info(user);
+            new Info(this.user, this.email);
             dispose();
 
         } catch (ClassNotFoundException | SQLException e) {
