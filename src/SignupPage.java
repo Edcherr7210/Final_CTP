@@ -139,7 +139,7 @@ public class SignupPage extends JFrame implements ActionListener {
     void CreateConnection(){
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/calorieTracker?useSSL=false&serverTimezone=UTC", "root", "Mynumberis#121");
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/calorieTracker?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "Mynumberis#121");
             Statement stmt = con.createStatement();
 
             String input = "INSERT INTO logOrSign (Username, Email, Password) VALUES (?, ?, ?)";
@@ -147,6 +147,12 @@ public class SignupPage extends JFrame implements ActionListener {
             pstmt.setString(1, this.user);
             pstmt.setString(2, this.email);
             pstmt.setString(3, this.pass);
+
+            pstmt.executeUpdate();
+
+            input = "INSERT INTO weightLoss (Username) VALUES (?)";
+            pstmt = con.prepareStatement(input);
+            pstmt.setString(1, this.user);
 
             pstmt.executeUpdate();
 

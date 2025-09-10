@@ -13,8 +13,9 @@ public class CreateBMR extends JFrame {
     CreateBMR(String userOrEmail){
         this.userOrEmail = userOrEmail;
         CreateConnection();
+        dispose();
 
-        new MainPage(userOrEmail);
+
     }
 
     void CreateConnection(){
@@ -67,6 +68,13 @@ public class CreateBMR extends JFrame {
 
             int rowsAffected = updateStmt.executeUpdate();
 
+            String updateWeight = "UPDATE weightLoss SET bmr = ? WHERE Username = ?";
+            PreparedStatement weightStmt = con.prepareStatement(updateWeight);
+            weightStmt.setDouble(1, this.bmr);
+            weightStmt.setString(2, this.userOrEmail);
+
+            weightStmt.executeUpdate();
+
             if (rowsAffected > 0) {
                 System.out.println("BMR updated successfully: " + Math.round(this.bmr));
             } else {
@@ -77,6 +85,7 @@ public class CreateBMR extends JFrame {
             rs.close();
             selectStmt.close();
             updateStmt.close();
+            weightStmt.close();
 
         } catch (ClassNotFoundException | SQLException e) {
             System.err.println("Database error: " + e.getMessage());

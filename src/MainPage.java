@@ -211,13 +211,13 @@ public class MainPage extends JFrame implements ActionListener {
                     "Success",
                     JOptionPane.INFORMATION_MESSAGE);
 
-        }
+            }
         else if (e.getSource() == addCals){
             new CalorieUpdate();
             dispose();
         }
         else if (e.getSource() == creaPlan){
-            new CaloriePlan();
+            new CaloriePlan(this.userOrEmail);
             dispose();
         }
         else if (e.getSource() == checkInfo){
