@@ -3,12 +3,14 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.*;
+import java.util.Arrays;
 import java.util.Objects;
 
 //Signup page to create account if needed
 public class SignupPage extends JFrame implements ActionListener {
 
-    JTextField creUser, creEmail, crePass;
+    JTextField creUser, creEmail;
+    JPasswordField crePass;
     JButton create;
     String user, email, pass;
     Boolean proceed;
@@ -25,10 +27,10 @@ public class SignupPage extends JFrame implements ActionListener {
         JLabel imageLogin = new JLabel(loginImage);
         creUser = new JTextField();
         creEmail = new JTextField();
-        crePass = new JTextField();
+        crePass = new JPasswordField();
         Font font = new Font("Arial", Font.BOLD, 16);
         create = new JButton();
-        error = new JLabel(); // Initialize error label
+        error = new JLabel();
 
         //This button saves and creates the account
         create.setBackground(Color.WHITE);
@@ -78,12 +80,11 @@ public class SignupPage extends JFrame implements ActionListener {
                 BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
 
-        //Create Password
+        //Create Password - FIXED: Remove placeholder text for security
         crePass.setLayout(null);
         crePass.setBounds(500, 300, 220, 50);
         crePass.setFont(font);
         crePass.setBackground(Color.WHITE);
-        crePass.setText("Create Password Here!");
         crePass.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3, true),
                 BorderFactory.createEmptyBorder(8, 10, 8, 10)
@@ -131,17 +132,16 @@ public class SignupPage extends JFrame implements ActionListener {
         this.setSize(850, 500);
         this.setLayout(null);
         this.add(dGBG);
-        this.setLocationRelativeTo(null); // Center the window
+        this.setLocationRelativeTo(null);
     }
 
     //Create Connection for database to create and save account
     void CreateConnection(){
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver"); // Updated driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
             Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/calorieTracker?useSSL=false&serverTimezone=UTC", "root", "Mynumberis#121");
             Statement stmt = con.createStatement();
 
-            // Fixed SQL query - proper column specification
             String input = "INSERT INTO logOrSign (Username, Email, Password) VALUES (?, ?, ?)";
             PreparedStatement pstmt = con.prepareStatement(input);
             pstmt.setString(1, this.user);
@@ -171,10 +171,10 @@ public class SignupPage extends JFrame implements ActionListener {
 
     //Create connection to try to check if user, email, or password was already used
     void CheckInformation(){
-        proceed = true; // Initialize as true
+        proceed = true;
 
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver"); // Updated driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
             Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/calorieTracker?useSSL=false&serverTimezone=UTC", "root", "Mynumberis#121");
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * FROM logOrSign;");
@@ -220,7 +220,11 @@ public class SignupPage extends JFrame implements ActionListener {
         if (e.getSource() == create){
             this.user = this.creUser.getText();
             this.email = this.creEmail.getText();
-            this.pass = this.crePass.getText();
+
+            // FIXED: Proper password handling
+            char[] passwordChars = this.crePass.getPassword();
+            this.pass = new String(passwordChars);
+            Arrays.fill(passwordChars, ' '); // Clear from memory for security
 
             // Clear previous error messages
             error.setText("");
@@ -238,7 +242,7 @@ public class SignupPage extends JFrame implements ActionListener {
                 return;
             }
 
-            if (pass.equals("Create Password Here!") || pass.trim().isEmpty()) {
+            if (pass.trim().isEmpty() || pass.length() == 0) {
                 error.setText("Please enter a valid password");
                 error.setForeground(Color.RED);
                 return;

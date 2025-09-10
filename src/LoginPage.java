@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.sql.*;
+import java.util.Arrays;
 import java.util.Objects;
 
 public class LoginPage extends JFrame implements ActionListener, MouseListener {
@@ -12,7 +13,7 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
     JLabel signUpLink;
     String userOrEmail;
     String inPass;
-    JTextField password;
+    JPasswordField password;
     JTextField username;
     JLabel error;
 
@@ -25,7 +26,7 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
         JLabel imageLogin = new JLabel(loginImage);
         JLabel ctp = new JLabel();
         username = new JTextField(30);
-        password = new JTextField(30);
+        password = new JPasswordField(30);
         submit = new JButton();
         signUpLink = new JLabel();
         error = new JLabel();
@@ -51,12 +52,11 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
                 BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
 
-        //Password textbox design
+        //Password textbox design - FIXED: Remove placeholder text for security
         password.setBounds(500, 260, 220, 40);
         password.setLayout(null);
         password.setFont(new Font("Arial", Font.PLAIN, 14));
         password.setBackground(Color.WHITE);
-        password.setText("Password");
         password.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3, true),
                 BorderFactory.createEmptyBorder(8, 10, 8, 10)
@@ -80,7 +80,7 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
         signUpLink.setText("<html><u>Don't Have An Account?</u></html>");
         signUpLink.addMouseListener(this);
         signUpLink.setForeground(Color.WHITE);
-        signUpLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); // Added cursor change
+        signUpLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         error.setBounds(520, 325, 200, 30);
         error.setFont(font);
@@ -109,7 +109,7 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
         this.setSize(850, 500);
         this.setLayout(null);
         this.add(dGBG);
-        this.setLocationRelativeTo(null); // Center the window
+        this.setLocationRelativeTo(null);
     }
 
     //Connects to the database to get user info
@@ -118,8 +118,8 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
         boolean passFound = false;
 
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver"); // Updated driver
-            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/calorieTracker?useSSL=false&serverTimezone=UTC", "root", "Mynumberis#121");
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/calorieTracker?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "Mynumberis#121");
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * FROM logOrSign;");
 
@@ -150,7 +150,7 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
                 System.err.println("Username not found");
                 this.error.setText("Wrong Input Information");
             } else {
-                // Login successful - you can add navigation to next page here
+                // Login successful
                 System.out.println("Login successful!");
                 new MainPage(userOrEmail);
                 dispose();
@@ -171,14 +171,19 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == submit){
             this.userOrEmail = this.username.getText();
-            this.inPass = this.password.getText();
+
+            // FIXED: Proper password handling
+            char[] passwordChars = this.password.getPassword();
+            this.inPass = new String(passwordChars);
+            Arrays.fill(passwordChars, ' '); // Clear from memory for security
 
             // Clear previous error messages
             this.error.setText("");
 
-            // Only proceed if fields are not empty and not default text
-            if (!this.userOrEmail.equals("Username Or Email") && !this.inPass.equals("Password")
-                    && !this.userOrEmail.trim().isEmpty() && !this.inPass.trim().isEmpty()) {
+            // Updated validation - check for placeholder text and empty fields
+            if (!this.userOrEmail.equals("Username Or Email") &&
+                    !this.userOrEmail.trim().isEmpty() &&
+                    this.inPass.length() > 0) {
                 CreateConnection();
             } else {
                 this.error.setText("Please fill in all fields");
@@ -188,7 +193,7 @@ public class LoginPage extends JFrame implements ActionListener, MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e){
-        if (e.getSource() == signUpLink) { // Added source check for safety
+        if (e.getSource() == signUpLink) {
             try {
                 new SignupPage();
                 dispose();
