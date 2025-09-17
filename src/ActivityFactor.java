@@ -68,6 +68,7 @@ public class ActivityFactor extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        /*
         if (e.getSource() == home) {
             new MainPage(this.user);
             dispose();
@@ -81,5 +82,6 @@ public class ActivityFactor extends JFrame implements ActionListener {
             // new NextPage(this.user);
             // dispose();
         }
+        */
     }
 }
