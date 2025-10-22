@@ -1,3 +1,5 @@
+//Main Page Of CTP
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
@@ -9,7 +11,7 @@ import java.util.Objects;
 public class MainPage extends JFrame implements ActionListener {
 
     JButton calcBMR, creaPlan, addCals, checkInfo;
-    JLabel bmr;
+    JLabel bmr, cDaily;
     String userOrEmail;
 
     // Custom rounded panel class
@@ -52,6 +54,8 @@ public class MainPage extends JFrame implements ActionListener {
         JLabel corIMG = new JLabel(corImage);
         JLabel ctpLabel = new JLabel();
         bmr = new JLabel();
+        cDaily = new JLabel();
+
         calcBMR = new JButton();
         creaPlan = new JButton();
         addCals = new JButton();
@@ -60,13 +64,19 @@ public class MainPage extends JFrame implements ActionListener {
         bmr.setLayout(null);
         bmr.setText("Calculate BMR");
         bmr.setFont(new Font("Arial", Font.BOLD, 25));
-        bmr.setBounds(95, 5, 300, 150);
+        bmr.setBounds(85, 3, 300, 150);
+
+        cDaily.setLayout(null);
+        cDaily.setText("Create Calorie Plan");
+        cDaily.setFont(new Font("Arial", Font.BOLD, 25));
+        cDaily.setBounds(30, 3, 900, 150);
 
         //This is the panel to present the remaining calories for the day
         dailyCals.setLayout(null);
         dailyCals.setBackground(Color.WHITE);
         dailyCals.setBounds(425, 280, 375, 150);
         dailyCals.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        dailyCals.add(cDaily);
 
         //This is the panel to present the users BMR
         preBMR.setLayout(null);
@@ -144,6 +154,7 @@ public class MainPage extends JFrame implements ActionListener {
         this.setLocationRelativeTo(null);
 
         loadBMROnStartup();
+        loadCreatedPlan();
     }
 
     // Load BMR when the page first opens
@@ -185,6 +196,55 @@ public class MainPage extends JFrame implements ActionListener {
             System.err.println("Database error loading BMR: " + e.getMessage());
             this.bmr.setText("Error loading BMR");
             this.bmr.setForeground(Color.RED);
+        } finally {
+            if (con != null) {
+                try {
+                    con.close();
+                } catch (SQLException e) {
+                    System.err.println("Error closing connection: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    void loadCreatedPlan(){
+        Connection con = null;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            con = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/calorieTracker?useSSL=false&serverTimezone=UTC",
+                    "root",
+                    "Mynumberis#121"
+            );
+
+            String selectQuery = "SELECT CalorieDaily FROM weightLoss WHERE Username = ?";
+            PreparedStatement selectStmt = con.prepareStatement(selectQuery);
+            selectStmt.setString(1, this.userOrEmail);
+
+
+            ResultSet rs = selectStmt.executeQuery();
+
+            if (rs.next()) {
+                double cDaily = rs.getDouble("CalorieDaily");
+                if (cDaily > 0) {
+                    this.cDaily.setText(String.format("Daily Calories: %.0f cal/day", cDaily));
+                    this.cDaily.setForeground(new Color(34, 139, 34)); // Green color
+                } else {
+                    this.cDaily.setText("Click Create Plan");
+                    this.cDaily.setForeground(Color.GRAY);
+                }
+            } else {
+                this.cDaily.setText("User not found");
+                this.cDaily.setForeground(Color.RED);
+            }
+
+            rs.close();
+            selectStmt.close();
+
+        } catch (ClassNotFoundException | SQLException e) {
+            System.err.println("Database error loading BMR: " + e.getMessage());
+            this.cDaily.setText("Error loading BMR");
+            this.cDaily.setForeground(Color.RED);
         } finally {
             if (con != null) {
                 try {

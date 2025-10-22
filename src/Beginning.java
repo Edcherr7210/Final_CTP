@@ -3,3 +3,4 @@ public class Beginning {
         new LoginPage();
     }
 }
+    
