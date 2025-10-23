@@ -142,6 +142,7 @@ public class SignupPage extends JFrame implements ActionListener {
             Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/calorieTracker?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true", "root", "Mynumberis#121");
             Statement stmt = con.createStatement();
 
+            //Adds Info
             String input = "INSERT INTO logOrSign (Username, Email, Password) VALUES (?, ?, ?)";
             PreparedStatement pstmt = con.prepareStatement(input);
             pstmt.setString(1, this.user);
@@ -150,18 +151,25 @@ public class SignupPage extends JFrame implements ActionListener {
 
             pstmt.executeUpdate();
 
+            //Sets Username Into WeightLoss Table
             input = "INSERT INTO weightLoss (Username) VALUES (?)";
             pstmt = con.prepareStatement(input);
             pstmt.setString(1, this.user);
 
             pstmt.executeUpdate();
 
+
+            //sets username into Macros Table
+            input = "INSERT INTO Macros (Username) VALUES (?)";
+            pstmt = con.prepareStatement(input);
+            pstmt.setString(1, this.user);
+
             // Close resources
             pstmt.close();
             stmt.close();
             con.close();
 
-            System.out.println("Account created successfully!");
+            System.out.println("Account created successfully!   ");
             error.setText("Account created successfully!");
             error.setForeground(Color.GREEN);
             new Info(this.user, this.email);
